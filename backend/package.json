@@ -1,5 +1,5 @@
 {
-  "name": "farmtocup-pos-backend",
+  "name": "farmtocupbackend",
   "version": "1.0.0",
   "description": "Farm to Cup Philippines POS System Backend",
   "main": "server.js",
