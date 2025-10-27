@@ -24,16 +24,31 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Please enter your password'],
+    required: function() {
+      // Password only required for non-Google auth users
+      return !this.googleId;
+    },
     minlength: [8, 'Password must be at least 8 characters'],
     validate: {
       validator: function(v) {
+        // Skip validation if no password (Google OAuth user)
+        if (!v) return true;
         // Require at least: 1 uppercase, 1 lowercase, 1 number, 1 special character
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_+=\-\[\]{};:'"\\|,.<>\/~`])[A-Za-z\d@$!%*?&#^()_+=\-\[\]{};:'"\\|,.<>\/~`]{8,}$/.test(v);
       },
       message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
     },
     select: false
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true  // Allows null values while maintaining uniqueness
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
   },
   role: {
     type: String,
@@ -70,10 +85,11 @@ userSchema.virtual('isLocked').get(function() {
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    next();
+  if (!this.isModified('password') || !this.password) {
+    return next();
   }
   this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
 // Compare password

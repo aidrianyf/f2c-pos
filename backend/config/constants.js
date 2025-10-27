@@ -6,7 +6,8 @@ module.exports = {
 
   USER_STATUS: {
     ACTIVE: 'active',
-    INACTIVE: 'inactive'
+    INACTIVE: 'inactive',
+    PENDING: 'pending'
   },
 
   ORDER_STATUS: {
