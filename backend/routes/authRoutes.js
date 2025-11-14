@@ -24,20 +24,30 @@ router.get('/me', protect, getMe);
 router.get('/profile', protect, getMe); // Add profile alias
 router.put('/password', protect, updatePassword);
 
-// Google OAuth routes
-router.get('/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email']
-  })
-);
+// Google OAuth routes - only enable if credentials are configured
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  router.get('/google',
+    passport.authenticate('google', {
+      scope: ['profile', 'email']
+    })
+  );
 
-router.get('/google/callback',
-  passport.authenticate('google', {
-    failureRedirect: `${process.env.CLIENT_URL}/login?error=auth_failed`,
-    session: false
-  }),
-  googleCallback
-);
+  router.get('/google/callback',
+    passport.authenticate('google', {
+      failureRedirect: `${process.env.CLIENT_URL}/login?error=auth_failed`,
+      session: false
+    }),
+    googleCallback
+  );
+} else {
+  // Return helpful error when OAuth not configured
+  router.get('/google', (req, res) => {
+    res.status(503).json({
+      success: false,
+      message: 'Google OAuth is not configured on this server'
+    });
+  });
+}
 
 // User management routes (Admin only)
 router.get('/pending-users', protect, authorizeRoles('admin'), getPendingUsers);
