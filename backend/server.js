@@ -132,25 +132,27 @@ app.use((req, res, next) => {
 // Error handler middleware (must be last)
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
+// Start server only if not in serverless environment (Vercel)
+if (process.env.VERCEL !== '1' && require.main === module) {
+  const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
-  console.log(`
+  const server = app.listen(PORT, () => {
+    console.log(`
 ╔════════════════════════════════════════╗
 ║   🌱 Farm to Cup POS System 🌱        ║
 ╚════════════════════════════════════════╝
 Server running in ${process.env.NODE_ENV} mode
 Port: ${PORT}
 Time: ${new Date().toLocaleString()}
-  `);
-});
+    `);
+  });
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.error(`Error: ${err.message}`);
-  console.log('Shutting down server due to unhandled promise rejection');
-  server.close(() => process.exit(1));
-});
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err) => {
+    console.error(`Error: ${err.message}`);
+    console.log('Shutting down server due to unhandled promise rejection');
+    server.close(() => process.exit(1));
+  });
+}
 
 module.exports = app;
